@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../include/page.h"
 #include "../include/disk_manager.h"
+#include "../include/tokenizer.h"
 
 int main() {
     DiskManager dm("test.db");
@@ -17,5 +18,12 @@ int main() {
     std::cout << "page_id: " << read_page.header()->page_id << "\n";
     std::cout << "record_count: " << read_page.header()->record_count << "\n";
 
-    return 0;
+    Tokenizer tok("SELECT name FROM users WHERE age = 42");
+    auto tokens = tok.tokenize();
+    for (auto& t : tokens) {
+        if (t.type == TokenType::END_OF_INPUT) break;
+        std::cout << t.text << "\n";
+    }
+
+   return 0;
 }
