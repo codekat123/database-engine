@@ -2,6 +2,7 @@
 #include "../include/page.h"
 #include "../include/disk_manager.h"
 #include "../include/tokenizer.h"
+#include "../include/lru_replacer.h"
 
 int main() {
     DiskManager dm("test.db");
@@ -9,6 +10,18 @@ int main() {
     Page write_page;
     write_page.header()->page_id = 1;
     write_page.header()->record_count = 5;
+
+    LRUReplacer replacer(3);
+    replacer.record_access(0);
+    replacer.record_access(1);
+    replacer.record_access(2);
+    replacer.set_evictable(0, true);
+    replacer.set_evictable(1, true);
+    replacer.set_evictable(2, true);
+
+    size_t victim;
+    replacer.evict(victim);
+    std::cout << "evicted frame: " << victim << "\n";
 
     dm.write_page(0, write_page);
 
