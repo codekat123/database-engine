@@ -1,42 +1,21 @@
 #include <iostream>
-#include "../include/page.h"
 #include "../include/disk_manager.h"
-#include "../include/tokenizer.h"
-#include "../include/lru_replacer.h"
+#include "../include/buffer_pool_manager.h"
 
 int main() {
     DiskManager dm("test.db");
+    BufferPoolManager bpm(3, dm);
 
-    Page write_page;
-    write_page.header()->page_id = 1;
-    write_page.header()->record_count = 5;
+    int32_t page_id;
+    Page* page = bpm.new_page(page_id);
+    std::cout << "new page id: " << page_id << "\n";
 
-    LRUReplacer replacer(3);
-    replacer.record_access(0);
-    replacer.record_access(1);
-    replacer.record_access(2);
-    replacer.set_evictable(0, true);
-    replacer.set_evictable(1, true);
-    replacer.set_evictable(2, true);
+    page->header()->record_count = 42;
+    bpm.unpin_page(page_id, true);
 
-    size_t victim;
-    replacer.evict(victim);
-    std::cout << "evicted frame: " << victim << "\n";
+    Page* fetched = bpm.fetch_page(page_id);
+    std::cout << "record_count: " << fetched->header()->record_count << "\n";
+    bpm.unpin_page(page_id, false);
 
-    dm.write_page(0, write_page);
-
-    Page read_page;
-    dm.read_page(0, read_page);
-
-    std::cout << "page_id: " << read_page.header()->page_id << "\n";
-    std::cout << "record_count: " << read_page.header()->record_count << "\n";
-
-    Tokenizer tok("SELECT name FROM users WHERE age = 42");
-    auto tokens = tok.tokenize();
-    for (auto& t : tokens) {
-        if (t.type == TokenType::END_OF_INPUT) break;
-        std::cout << t.text << "\n";
-    }
-
-   return 0;
+    return 0;
 }
