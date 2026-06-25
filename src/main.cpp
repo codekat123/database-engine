@@ -1,21 +1,19 @@
 #include <iostream>
-#include "../include/disk_manager.h"
-#include "../include/buffer_pool_manager.h"
+#include "../include/page.h"
+#include "../include/heap_page.h"
 
 int main() {
-    DiskManager dm("test.db");
-    BufferPoolManager bpm(3, dm);
+    Page page;
+    HeapPage hp(page);
 
-    int32_t page_id;
-    Page* page = bpm.new_page(page_id);
-    std::cout << "new page id: " << page_id << "\n";
+    const char* record = "hello";
+    int32_t slot_id = hp.insert_record(record, 5);
+    std::cout << "inserted at slot: " << slot_id << "\n";
 
-    page->header()->record_count = 42;
-    bpm.unpin_page(page_id, true);
-
-    Page* fetched = bpm.fetch_page(page_id);
-    std::cout << "record_count: " << fetched->header()->record_count << "\n";
-    bpm.unpin_page(page_id, false);
+    uint16_t len = 0;
+    const char* data = hp.get_record(slot_id, len);
+    std::cout << "retrieved: " << std::string(data, len) << "\n";
+    std::cout << "free space: " << hp.free_space() << "\n";
 
     return 0;
 }

@@ -22,6 +22,9 @@ public:
         return reinterpret_cast<PageHeader*>(data_);
     }
 
+    char* raw() { return data_; }
+    const char* raw() const { return data_; }
+
 private:
     char data_[PAGE_SIZE];
 };
