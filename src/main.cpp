@@ -1,19 +1,23 @@
 #include <iostream>
-#include "../include/page.h"
-#include "../include/heap_page.h"
+#include "../include/disk_manager.h"
+#include "../include/buffer_pool_manager.h"
+#include "../include/heap_file.h"
 
 int main() {
-    Page page;
-    HeapPage hp(page);
+    DiskManager dm("test.db");
+    BufferPoolManager bpm(4, dm);
+    HeapFile hf(bpm);
 
-    const char* record = "hello";
-    int32_t slot_id = hp.insert_record(record, 5);
-    std::cout << "inserted at slot: " << slot_id << "\n";
+    const char* record = "hello from heapfile";
+    RID rid = hf.insert_record(record, 19);
+    std::cout << "inserted at page: " << rid.page_id
+              << " slot: " << rid.slot_id << "\n";
 
-    uint16_t len = 0;
-    const char* data = hp.get_record(slot_id, len);
-    std::cout << "retrieved: " << std::string(data, len) << "\n";
-    std::cout << "free space: " << hp.free_space() << "\n";
+    char buffer[64];
+    uint16_t length = 0;
+    bool ok = hf.get_record(rid, buffer, length);
+    std::cout << "retrieved: " << std::string(buffer, length) << "\n";
+    std::cout << "success: " << ok << "\n";
 
     return 0;
 }
